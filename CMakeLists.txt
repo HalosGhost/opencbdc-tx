@@ -55,6 +55,7 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_link_options(--coverage)
+    add_compile_options(-Og -g -ggdb)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
