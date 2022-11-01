@@ -95,3 +95,4 @@ if [ ! -f "${PYTHON_TIDY}" ]; then
   wget https://raw.githubusercontent.com/llvm/llvm-project/e837ce2a32369b2e9e8e5d60270c072c7dd63827/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
   $SUDO mv run-clang-tidy.py /usr/local/bin
 fi
+

@@ -12,7 +12,8 @@ on:
       - trunk
 
 jobs:
-  docker-build-and-publish-base:
+
+  docker-build:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -29,7 +30,6 @@ jobs:
             **/configure.sh
 
       - name: Docker meta
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -44,23 +44,21 @@ jobs:
             type=sha
 
       - name: Set up QEMU
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
         uses: docker/setup-buildx-action@v1
 
       - name: Login to GitHub Container Registry
-        if: (github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) && (steps.changed-files-specific.outputs.any_changed == 'true')
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
+      - name: Build and push base
+        if: ${{ steps.changed-files-specific.outputs.any_changed == 'true' || github.event_name == 'pull_request' }}
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -68,16 +66,14 @@ jobs:
           push: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  docker-build-and-publish-twophase:
-    runs-on: ubuntu-20.04
-    needs: docker-build-and-publish-base
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Pull submodules
+        run: git submodule init && git submodule update
 
-      - name: Docker meta
-        id: meta
+      - name: Docker meta twophase
+        id: meta-twophase
         uses: docker/metadata-action@v3
         with:
           # list of Docker images to use as base name for tags
@@ -90,38 +86,8 @@ jobs:
             type=ref,event=pr
             type=sha
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to GitHub Container Registry
-        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          target: twophase
-          push: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  docker-build-and-publish-atomizer:
-    runs-on: ubuntu-20.04
-    needs: docker-build-and-publish-base
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Docker meta
-        id: meta
+      - name: Docker meta atomizer
+        id: meta-atomizer
         uses: docker/metadata-action@v3
         with:
           # list of Docker images to use as base name for tags
@@ -134,25 +100,54 @@ jobs:
             type=ref,event=pr
             type=sha
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to GitHub Container Registry
-        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: docker/login-action@v1
+      - name: Build and push twophase
+        if: ${{ !(steps.changed-files-specific.outputs.any_changed == 'true' && github.event_name == 'pull_request') }}
+        uses: docker/build-push-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          context: .
+          target: twophase
+          push: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          tags: ${{ steps.meta-twophase.outputs.tags }}
+          labels: ${{ steps.meta-twophase.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build and push
+      - name: Build and push atomizer
+        if: ${{ !(steps.changed-files-specific.outputs.any_changed == 'true' && github.event_name == 'pull_request') }}
         uses: docker/build-push-action@v2
         with:
           context: .
           target: atomizer
           push: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-atomizer.outputs.tags }}
+          labels: ${{ steps.meta-atomizer.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push twophase (PR, with base changes)
+        if: ${{ steps.changed-files-specific.outputs.any_changed == 'true' && github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          target: twophase
+          push: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          tags: ${{ steps.meta-twophase.outputs.tags }}
+          labels: ${{ steps.meta-twophase.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BASE_IMAGE=localhost:5000/base
+
+      - name: Build and push atomizer (PR, with base changes)
+        if: ${{ steps.changed-files-specific.outputs.any_changed == 'true' && github.event_name == 'pull_request' }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          target: atomizer
+          push: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          tags: ${{ steps.meta-atomizer.outputs.tags }}
+          labels: ${{ steps.meta-atomizer.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BASE_IMAGE=localhost:5000/base
