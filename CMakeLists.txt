@@ -35,6 +35,7 @@ find_library(NURAFT_LIBRARY nuraft REQUIRED)
 find_library(GTEST_LIBRARY gtest REQUIRED)
 find_library(GTEST_MAIN_LIBRARY gtest_main REQUIRED)
 find_package(benchmark REQUIRED)
+
 find_library(LUA_LIBRARY lua REQUIRED)
 find_library(KECCAK_LIBRARY keccak REQUIRED)
 find_library(EVMC_INSTRUCTIONS_LIBRARY evmc-instructions REQUIRED)
