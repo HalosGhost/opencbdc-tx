@@ -167,13 +167,13 @@ auto main(int argc, char** argv) -> int {
                                         output_hash.data(),
                                         sizeof(output_hash));
                             static constexpr auto aux_size
-                                = sizeof(ctx.m_outputs[0].m_auxiliary);
+                                = sizeof(ctx.m_outputs[0].m_value_commitment);
                             static constexpr auto rng_size
                                 = sizeof(ctx.m_outputs[0].m_range);
                             std::array<char, aux_size + rng_size> proofs_arr{};
 
                             std::memcpy(proofs_arr.data(),
-                                        ctx.m_outputs[0].m_auxiliary.data(),
+                                        ctx.m_outputs[0].m_value_commitment.data(),
                                         aux_size);
                             std::memcpy(proofs_arr.data() + aux_size,
                                         ctx.m_outputs[0].m_range.data(),

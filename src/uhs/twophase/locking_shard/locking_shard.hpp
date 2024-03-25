@@ -133,7 +133,7 @@ namespace cbdc::locking_shard {
         /// \param epoch the epoch to audit the supply at.
         /// \return commitment to total value in this shard's UHS. std::nullopt
         ///         if any of the UTXOs do not match their UHS ID.
-        auto audit(uint64_t epoch) -> std::optional<commitment_t>;
+        auto get_summary(uint64_t epoch) -> std::optional<commitment_t>;
 
         /// Prunes any spent UHS elements spent prior to the given epoch.
         /// \param epoch epoch to prune prior to.

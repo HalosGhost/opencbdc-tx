@@ -57,10 +57,8 @@ namespace cbdc::transaction::validation {
 
     /// A proof verification error
     enum class proof_error_code : uint8_t {
-        invalid_auxiliary, ///< deserializing the auxiliary commitment failed
-        invalid_uhs_id,    ///< deserializing the UHS ID failed
-        invalid_signature_key, ///< constructing consistency key failed
-        inconsistent_value,    ///< consistency proof did not verify
+        invalid_commitment, ///< deserializing the auxiliary commitment failed
+        invalid_uhs_id,     ///< deserializing the UHS ID failed
         out_of_range,          ///< range proof did not verify
         wrong_sum,             ///< auxiliaries did not sum as-required
         missing_rangeproof,    ///< rangeproof missing in output
@@ -177,7 +175,7 @@ namespace cbdc::transaction::validation {
         -> std::optional<proof_error>;
     auto check_range_batch(secp256k1_ecmult_multi_batch& batch)
         -> std::optional<proof_error>;
-    auto check_proof(const full_tx& tx,
+    auto check_proof(const compact_tx& tx,
                      const std::vector<commitment_t>& inps)
         -> std::optional<proof_error>;
     auto check_commitment_sum(

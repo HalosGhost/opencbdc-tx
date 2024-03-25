@@ -162,7 +162,7 @@ TEST_F(WalletTxValidationTest, duplicate_input) {
 
 TEST_F(WalletTxValidationTest, asymmetric_inout_set) {
     cbdc::transaction::compact_tx ctx(m_mint_tx1);
-    auto err = cbdc::transaction::validation::check_proof(m_mint_tx1, {});
+    auto err = cbdc::transaction::validation::check_proof(ctx, {});
     ASSERT_TRUE(err.has_value());
     ASSERT_EQ(err.value().m_code,
               cbdc::transaction::validation::proof_error_code::wrong_sum);

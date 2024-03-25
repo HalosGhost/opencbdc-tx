@@ -40,7 +40,7 @@ TEST_F(PacketIOTest, output) {
     cbdc::transaction::output out;
     out.m_witness_program_commitment = {'t', 'a', 'f', 'm'};
     out.m_id = {'q', 'w', 'e', 'r'};
-    out.m_auxiliary = {'o', 'p', '[', ']'};
+    out.m_value_commitment = {'o', 'p', '[', ']'};
     out.m_range = {'}', '{', 'P', 'O'};
 
     m_ser << out;
@@ -55,7 +55,7 @@ TEST_F(PacketIOTest, input) {
     cbdc::transaction::output out;
     out.m_witness_program_commitment = {'t', 'a', 'f', 'm'};
     out.m_id = {'q', 'w', 'e', 'r'};
-    out.m_auxiliary = {'o', 'p', '[', ']'};
+    out.m_value_commitment = {'o', 'p', '[', ']'};
     out.m_range = {'}', '{', 'P', 'O'};
 
     cbdc::transaction::input in;
@@ -76,7 +76,7 @@ TEST_F(PacketIOTest, transaction) {
     cbdc::transaction::output inout;
     inout.m_witness_program_commitment = {'t', 'a', 'f', 'm'};
     inout.m_id = {'q', 'w', 'e', 'r'};
-    inout.m_auxiliary = {'o', 'p', '[', ']'};
+    inout.m_value_commitment = {'o', 'p', '[', ']'};
     inout.m_range = {'}', '{', 'P', 'O'};
 
     cbdc::transaction::input in;

@@ -77,7 +77,7 @@ namespace cbdc::transaction::validation {
         std::vector<commitment_t> inputs{};
         inputs.reserve(tx.m_inputs.size());
         for(const auto& inp : tx.m_inputs) {
-            inputs.push_back(inp.m_prevout_data.m_auxiliary);
+            inputs.push_back(inp.m_prevout_data.m_value_commitment);
         }
 
         const auto outproof_exists_err = check_output_rangeproofs_exist(tx);
@@ -86,7 +86,7 @@ namespace cbdc::transaction::validation {
         }
 
         const cbdc::transaction::compact_tx ctx(tx);
-        const auto proof_error = check_proof(tx, inputs);
+        const auto proof_error = check_proof(ctx, inputs);
         if(proof_error) {
             return proof_error;
         }
@@ -368,7 +368,7 @@ namespace cbdc::transaction::validation {
         return std::nullopt;
     }
 
-    auto check_proof(const full_tx& tx,
+    auto check_proof(const compact_tx& tx,
                      const std::vector<commitment_t>& inps)
         -> std::optional<proof_error> {
         auto* ctx = secp_context.get();
@@ -376,21 +376,21 @@ namespace cbdc::transaction::validation {
         for(const auto& comm : inps) {
             auto maybe_aux = deserialize_commitment(ctx, comm);
             if(!maybe_aux.has_value()) {
-                return proof_error{proof_error_code::invalid_auxiliary};
+                return proof_error{proof_error_code::invalid_commitment};
             }
             auto aux = maybe_aux.value();
             in_comms.push_back(aux);
         }
         std::vector<secp256k1_pedersen_commitment> out_comms{};
         for(const auto& proof : tx.m_outputs) {
-            auto maybe_aux = deserialize_commitment(ctx, proof.m_auxiliary);
+            auto maybe_aux = deserialize_commitment(ctx, proof.m_value_commitment);
             if(!maybe_aux.has_value()) {
-                return proof_error{proof_error_code::invalid_auxiliary};
+                return proof_error{proof_error_code::invalid_commitment};
             }
             auto aux = maybe_aux.value();
             out_comms.push_back(aux);
 
-            //auto rng = check_range(proof.m_auxiliary, proof.m_range.value());
+            //auto rng = check_range(proof.m_value_commitment, proof.m_range.value());
             //if(rng.has_value()) {
             //    return rng;
             //}
@@ -502,25 +502,20 @@ namespace cbdc::transaction::validation {
         -> std::string {
         switch(err.m_code) {
             case cbdc::transaction::validation::proof_error_code ::
-                invalid_auxiliary:
+                invalid_commitment:
                 return "One or more auxiliary commitments were malformed";
             case cbdc::transaction::validation::proof_error_code ::
                 invalid_uhs_id:
                 return "One or more UHS ID commitments were malformed";
-            case cbdc::transaction::validation::proof_error_code ::
-                invalid_signature_key:
-                return "Constructing the consistency-proof "
-                       "verification key failed";
-            case cbdc::transaction::validation::proof_error_code ::
-                inconsistent_value:
-                return "The values committed to by a UHS ID commitment and "
-                       "its auxiliary commitment are not equal";
             case cbdc::transaction::validation::proof_error_code ::
                 out_of_range:
                 return "One or more output values lay outside their proven "
                        "range";
             case cbdc::transaction::validation::proof_error_code ::wrong_sum:
                 return "Input values do not equal output values";
+            case cbdc::transaction::validation::proof_error_code ::
+                missing_rangeproof:
+                return "Output missing required rangeproof";
             default:
                 return "Unknown error";
         }

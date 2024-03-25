@@ -56,7 +56,7 @@ namespace cbdc::transaction {
         /// The UHS ID for the output
         hash_t m_id{};
         /// An auxiliary value used to prove preservation of balance
-        commitment_t m_auxiliary{};
+        commitment_t m_value_commitment{};
         /// The rangeproof guaranteeing that the output is greater than 0
         /// This rangeproof is only required when functioning as a transaction
         /// output, and is removed when converted into a transaction input.
@@ -152,7 +152,7 @@ namespace cbdc::transaction {
     /// \see \ref cbdc::operator<<(serializer&, const transaction::compact_output&)
     struct compact_output {
         /// The nonce used to compress the Pedersen Commitment to 32 bytes
-        commitment_t m_auxiliary{};
+        commitment_t m_value_commitment{};
         /// The rangeproof guaranteeing that the output is greater than 0
         rangeproof_t m_range{};
         /// The nested hash of the outpoint and encumbrance

@@ -74,7 +74,7 @@ namespace cbdc::shard {
                     std::memcpy(out_arr.data(), id.data(), id.size());
                     leveldb::Slice OutPointKey(out_arr.data(), id.size());
 
-                    static constexpr auto aux_size = sizeof(out.m_auxiliary);
+                    static constexpr auto aux_size = sizeof(out.m_value_commitment);
                     static constexpr auto sz_size = sizeof(size_t);
                     const auto rng_size = out.m_range.size();
                     static constexpr auto preimg_size = sizeof(out.m_provenance);
@@ -85,7 +85,7 @@ namespace cbdc::shard {
                     proofs_arr.reserve(total_size);
                     proofs_arr.assign(total_size, 0);
                     std::memcpy(proofs_arr.data(),
-                                out.m_auxiliary.data(),
+                                out.m_value_commitment.data(),
                                 aux_size);
                     std::memcpy(proofs_arr.data() + aux_size,
                                 &rng_size,
@@ -232,14 +232,14 @@ namespace cbdc::shard {
             auto val = it->value();
 
             static constexpr auto comm_size
-                = sizeof(transaction::compact_output::m_auxiliary);
+                = sizeof(transaction::compact_output::m_value_commitment);
             size_t rng_size{};
             static constexpr auto sz_size = sizeof(size_t);
 
             transaction::compact_output outp{};
             hash_t id{};
             std::memcpy(id.data(), key.data(), key.size());
-            std::memcpy(outp.m_auxiliary.data(), val.data(), comm_size);
+            std::memcpy(outp.m_value_commitment.data(), val.data(), comm_size);
             val.remove_prefix(comm_size);
             std::memcpy(&rng_size, val.data(), sz_size);
             val.remove_prefix(sz_size);
@@ -260,7 +260,7 @@ namespace cbdc::shard {
                 commits.reserve(1);
                 comms.emplace(bucket, std::move(commits));
             }
-            comms[bucket].emplace_back(outp.m_auxiliary);
+            comms[bucket].emplace_back(outp.m_value_commitment);
         }
 
         std::unordered_map<unsigned char, commitment_t> summaries{};

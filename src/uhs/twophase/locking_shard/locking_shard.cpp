@@ -230,7 +230,7 @@ namespace cbdc::locking_shard {
         }
     }
 
-    auto locking_shard::audit(uint64_t epoch)
+    auto locking_shard::get_summary(uint64_t epoch)
         -> std::optional<commitment_t> {
 
         {
@@ -267,7 +267,7 @@ namespace cbdc::locking_shard {
                     if(uhs_id != id) {
                         failed = true;
                     }
-                    auto comm = elem.m_out.m_auxiliary;
+                    auto comm = elem.m_out.m_value_commitment;
                     auto c = deserialize_commitment(m_secp.get(), comm).value();
                     auto r = transaction::validation::range_batch_add(
                         *range_batch,
@@ -295,7 +295,7 @@ namespace cbdc::locking_shard {
 //                                return std::nullopt;
 //                            }
 //
-//                            auto comm = elem.m_out.m_auxiliary;
+//                            auto comm = elem.m_out.m_value_commitment;
 //                            auto res = transaction::validation::check_range(
 //                                comm,
 //                                elem.m_out.m_range);

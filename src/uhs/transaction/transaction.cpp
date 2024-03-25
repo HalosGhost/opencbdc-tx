@@ -25,7 +25,7 @@ namespace cbdc::transaction {
 
     auto output::operator==(const output& rhs) const -> bool {
         return m_witness_program_commitment == rhs.m_witness_program_commitment
-            && m_id == rhs.m_id && m_auxiliary == rhs.m_auxiliary
+            && m_id == rhs.m_id && m_value_commitment == rhs.m_value_commitment
             && m_range == rhs.m_range;
     }
 
@@ -69,19 +69,20 @@ namespace cbdc::transaction {
     }
 
     compact_output::compact_output(const output& put, const out_point& point)
-        : m_auxiliary(put.m_auxiliary),
+        : m_value_commitment(put.m_value_commitment),
           m_range(put.m_range.value()),
           m_provenance(output_nested_hash(point, put)) {}
 
     compact_output::compact_output(const commitment_t& aux,
                                    const rangeproof_t& range,
                                    const hash_t& provenance)
-        : m_auxiliary(aux),
+        : m_value_commitment(aux),
           m_range(range),
           m_provenance(provenance) {}
 
     auto compact_output::operator==(const compact_output& rhs) const -> bool {
-        return m_auxiliary == rhs.m_auxiliary && m_range == rhs.m_range
+        return m_value_commitment == rhs.m_value_commitment
+            && m_range == rhs.m_range
             && m_provenance == rhs.m_provenance;
     }
 
@@ -183,7 +184,7 @@ namespace cbdc::transaction {
     auto calculate_uhs_id(const compact_output& put) -> hash_t {
         CSHA256 sha;
         sha.Write(put.m_provenance.data(), put.m_provenance.size());
-        sha.Write(put.m_auxiliary.data(), put.m_auxiliary.size());
+        sha.Write(put.m_value_commitment.data(), put.m_value_commitment.size());
         // sha.Write(put.m_range.data(), put.m_range.size());
 
         hash_t id{};
@@ -305,9 +306,9 @@ namespace cbdc::transaction {
         auto range = prove(ctx, gens, rng, out_spend_data, auxiliary);
 
         put.m_range = range;
-        put.m_auxiliary = serialize_commitment(ctx, *auxiliary);
+        put.m_value_commitment = serialize_commitment(ctx, *auxiliary);
 
-        auto uhs = calculate_uhs_id(point, put, put.m_auxiliary);
+        auto uhs = calculate_uhs_id(point, put, put.m_value_commitment);
         put.m_id = uhs;
 
         return true;

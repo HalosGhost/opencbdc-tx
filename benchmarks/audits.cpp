@@ -116,7 +116,7 @@ static auto audit(snapshot_map<hash_t, uhs_element>& uhs,
                 if(uhs_id != id) {
                     failed = true;
                 }
-                auto comm = elem.m_out.m_auxiliary;
+                auto comm = elem.m_out.m_value_commitment;
                 auto c = deserialize_commitment(secp.get(), comm).value();
                 auto r = transaction::validation::range_batch_add(
                     *range_batch,

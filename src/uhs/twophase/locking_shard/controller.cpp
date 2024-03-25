@@ -172,7 +172,7 @@ namespace cbdc::locking_shard {
                 }
 
                 m_logger->info("Running Audit for", audit_epoch);
-                auto maybe_commit = m_shard->audit(audit_epoch);
+                auto maybe_commit = m_shard->get_summary(audit_epoch);
                 if(!maybe_commit.has_value()) {
                     m_logger->error("Error running audit at epoch",
                                     audit_epoch);

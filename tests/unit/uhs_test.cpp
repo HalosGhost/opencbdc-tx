@@ -53,8 +53,8 @@ TEST_F(uhs_test, leveldb_roundtrip) {
 
     std::array<char, sizeof(cbdc::transaction::compact_output)> v;
     auto* vptr = v.data();
-    std::memcpy(vptr, o.m_auxiliary.data(), o.m_auxiliary.size());
-    vptr += o.m_auxiliary.size();
+    std::memcpy(vptr, o.m_value_commitment.data(), o.m_value_commitment.size());
+    vptr += o.m_value_commitment.size();
     std::memcpy(vptr, o.m_range.data(), o.m_range.size());
     vptr += o.m_range.size();
     std::memcpy(vptr, o.m_provenance.data(), o.m_provenance.size());

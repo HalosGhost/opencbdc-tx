@@ -147,7 +147,7 @@ namespace cbdc {
         auto spend = transaction::spend_data{{}, m_seed_value};
 
         inp.m_prevout_data.m_witness_program_commitment = {0};
-        inp.m_prevout_data.m_auxiliary = comm;
+        inp.m_prevout_data.m_value_commitment = comm;
         inp.m_prevout_data.m_range.reset();
         inp.m_prevout_data.m_id
             = calculate_uhs_id(inp.m_prevout, inp.m_prevout_data, comm);
@@ -157,7 +157,7 @@ namespace cbdc {
 
         transaction::output outp{};
         outp.m_witness_program_commitment = m_seed_witness_commitment;
-        outp.m_auxiliary = comm;
+        outp.m_value_commitment = comm;
         outp.m_range = range;
         tx.m_outputs[0] = outp;
 
@@ -205,12 +205,12 @@ namespace cbdc {
                                                  {},
                                                  in_spend_data);
 
-        inp.m_prevout_data.m_auxiliary
+        inp.m_prevout_data.m_value_commitment
             = serialize_commitment(m_secp.get(), aux.front());
         inp.m_prevout_data.m_id
             = transaction::calculate_uhs_id(inp.m_prevout,
                                             inp.m_prevout_data,
-                                            inp.m_prevout_data.m_auxiliary);
+                                            inp.m_prevout_data.m_value_commitment);
 
         inp.m_spend_data = in_spend_data.front();
         tx.m_inputs[0] = inp;
@@ -232,7 +232,7 @@ namespace cbdc {
 
         if(!m_seed_range_proof.has_value() || !m_seed_value_commitment.has_value()) {
             m_seed_range_proof = tx.m_outputs[0].m_range;
-            m_seed_value_commitment = tx.m_outputs[0].m_auxiliary;
+            m_seed_value_commitment = tx.m_outputs[0].m_value_commitment;
         }
 
         return tx;
@@ -637,7 +637,7 @@ namespace cbdc {
             send_out.m_witness_program_commitment = wit_comm;
             if(m_seed_range_proof.has_value() && m_seed_value_commitment.has_value()) {
                 send_out.m_range = m_seed_range_proof.value();
-                send_out.m_auxiliary = m_seed_value_commitment.value();
+                send_out.m_value_commitment = m_seed_value_commitment.value();
             }
             ret.m_outputs.push_back(send_out);
             out_spend_data.push_back(transaction::spend_data{{}, val});
@@ -666,7 +666,7 @@ namespace cbdc {
                 ret.m_outputs[i].m_id
                     = calculate_uhs_id(transaction::out_point(txid, i),
                                        ret.m_outputs[i],
-                                       ret.m_outputs[i].m_auxiliary);
+                                       ret.m_outputs[i].m_value_commitment);
             }
         }
 

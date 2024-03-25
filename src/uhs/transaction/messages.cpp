@@ -23,23 +23,23 @@ namespace cbdc {
     auto operator<<(serializer& packet, const transaction::output& out)
         -> serializer& {
         return packet << out.m_witness_program_commitment << out.m_id
-                      << out.m_auxiliary << out.m_range;
+                      << out.m_value_commitment << out.m_range;
     }
 
     auto operator>>(serializer& packet, transaction::output& out)
         -> serializer& {
         return packet >> out.m_witness_program_commitment >> out.m_id
-            >> out.m_auxiliary >> out.m_range;
+            >> out.m_value_commitment >> out.m_range;
     }
 
     auto operator<<(serializer& packet, const transaction::compact_output& out)
         -> serializer& {
-        return packet << out.m_auxiliary << out.m_range << out.m_provenance;
+        return packet << out.m_value_commitment << out.m_range << out.m_provenance;
     }
 
     auto operator>>(serializer& packet, transaction::compact_output& out)
         -> serializer& {
-        return packet >> out.m_auxiliary >> out.m_range >> out.m_provenance;
+        return packet >> out.m_value_commitment >> out.m_range >> out.m_provenance;
     }
 
     auto operator<<(serializer& packet, const transaction::spend_data& spnd)
